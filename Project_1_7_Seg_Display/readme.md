@@ -11,3 +11,5 @@ With an electronics board created by the ETML-ES School and equiped with a FPGA,
 [DONE] Realization of logic schematics (Quartus)
 
 [DONE] Simulation with Quartus
+
+[DONE] realization VHDL code according the Karnaugh Table
