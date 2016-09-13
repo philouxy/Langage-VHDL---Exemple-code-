@@ -2,7 +2,7 @@
 -- Nom du projet 		    : JONGLEUR
 -- Nom du fichier 		    : Main_Jongleur.vhd
 -- Date de création 	    : 09.08.2016
--- Date de modification     : 24.08.2016
+-- Date de modification     : 13.09.2016
 --
 -- Auteur 				    : Philou (Ph. Bovey)
 --
@@ -11,7 +11,7 @@
 --							  réalisation / simulation d'un jongleur à l'aide des 
 --							  deux affichage 7 segments à disposition.
 --
---							  1A) faire tourner dles segments dans le sens des 
+--							  1A) faire tourner les segments dans le sens des 
 --							      aiguilles d'une montre à 0.5s (soit 2Hz) 
 --
 -- Remarques 			    : lien
@@ -65,21 +65,17 @@ architecture COMPORTEMENT_GENERAL_JONGLEUR of JONGLEUR is
 	-- signaux internes -- 
 	----------------------
 	-- constante -- 
-	constant VAL_MAX_COMPTEUR_2HZ 	: std_logic_vector(19 downto 0) := To_stdlogicvector(X"00012"); -- valeur pour test & Sim --921600;	-- valeur max de tic  
-	constant VAL_MAX_CMPT_DIV_2	 	: std_logic_vector(19 downto 0) := To_stdlogicvector(X"00009"); -- valeur pour test & Sim --921600;	-- valeur max de tic 
-	--constant VAL_MAX_CMPT_DIV_2 : integer 		:= 9; 
-	
+	constant VAL_MAX_COMPTEUR_2HZ 	: std_logic_vector(23 downto 0) := X"1C1FFF"; --unsigned(X"1C1FFF"); -- := X"000013";
+	constant VAL_MAX_CMPT_DIV_2	 	: std_logic_vector(23 downto 0) := X"0E0FFF"; -- := X"0E0FFF"; 
+		
 	-- signal -- 
-	--signal compteur_num : integer := 0;
-	
 	signal clk_2Hz 		: std_logic; 
 	
 	signal etat_segment : std_logic_vector(2 downto 0);   
-	signal compteur_num_f : std_logic_vector(19 downto 0);
-	signal compteur_num_p : std_logic_vector(19 downto 0); 
+	signal compteur_num_f : std_logic_vector(23 downto 0);
+	signal compteur_num_p : std_logic_vector(23 downto 0); 
 	   
 	begin 	
-
 	--------------
 	-- compteur -- 
 	--------------	
@@ -94,7 +90,7 @@ architecture COMPORTEMENT_GENERAL_JONGLEUR of JONGLEUR is
 	
 	CMPT_ETAT_PRESENT_2HZ : process(CLK_1_8MHZ)
 		begin 
-			if((CLK_1_8MHZ'event) and (CLK_1_8MHZ = '1')) then 
+			if ((CLK_1_8MHZ'event) and (CLK_1_8MHZ = '1')) then 
 				compteur_num_p <= compteur_num_f;
 			end if; 
 	end process; 
@@ -102,61 +98,34 @@ architecture COMPORTEMENT_GENERAL_JONGLEUR of JONGLEUR is
 --	-----------------------------------------
 --	-- Horloge 2Hz rapport cyclique de 50% -- 
 --	-----------------------------------------
---	CLK_2HZ_50P : process (compteur_num_p) 
---		begin 
---			if (compteur_num_p <= VAL_MAX_CMPT_DIV_2) then
---				clk_2Hz <= '0';
---			else 
---				clk_2Hz <= '1'; 
---			end if; 
---	end process; 
---	
---	clk_2Hz_SIM <= clk_2Hz;
+	CLK_2HZ_50P : process (compteur_num_p) 
+		begin 
+			if rising_edge (CLK_1_8MHZ) then 
+				if (compteur_num_f <= VAL_MAX_CMPT_DIV_2) then
+					clk_2Hz <= '0';
+				else 
+					clk_2Hz <= '1'; 
+				end if;
+			end if; 
+	end process; 
 	
-	
-	clk_2Hz <= '0' when (compteur_num_p <= VAL_MAX_CMPT_DIV_2) else 
-               '1'; 
-               
-    clk_2Hz_SIM <= clk_2Hz;	
-	
-	
-	
---	CMPT_2Hz: process (CLK_1_8MHZ)
---		begin 
---		-- détection d'évenement sur flanc montant -- 
---		if(CLK_1_8MHZ'event and CLK_1_8MHZ = '1') then
---			-- remise à zéro du compteur si atteint la valeur max ou plus grand -- 
---			if (compteur_num >= VAL_MAX_COMPTEUR_2HZ) then   
---				compteur_num <= (others => '0');
---			else 
---				compteur_num <= compteur_num + 1;
---			end if;   
---		end if; 
---	end process; 
---	
---	-----------------------------------------
---	-- Horloge 2Hz rapport cyclique de 50% -- 
---	-----------------------------------------
---	clk_2Hz <= '0' when compteur_num <= VAL_MAX_CMPT_DIV_2 else 
---               '1'; 
---               
---    clk_2Hz_SIM <= clk_2Hz;  
+	clk_2Hz_SIM <= clk_2Hz;
                
     --------------------------
 	-- Gestion des Segments -- 
 	--------------------------
---	ETAT_SEG : process (clk_2Hz)
---		begin 
---			-- détection d'évenement sur flanc montant -- 
---			if (clk_2Hz'event and clk_2Hz = '1') then
---				-- si plus petit que '6' -- 
---				if etat_segment < "110" then 
---					etat_segment <= etat_segment + 1; 
---				else 
---					etat_segment <= "000"; 
---				end if; 
---			end if; 
---	end process; 
+	ETAT_SEG : process (clk_2Hz)
+		begin 
+			-- détection d'évenement sur flanc montant -- 
+			if (clk_2Hz'event and clk_2Hz = '1') then
+				-- si plus petit que '6' -- 
+				if etat_segment < "110" then 
+					etat_segment <= etat_segment + 1; 
+				else 
+					etat_segment <= "000"; 
+				end if; 
+			end if; 
+	end process; 
 	
 	------------------------------------
 	-- Assignation final des Segments -- 
