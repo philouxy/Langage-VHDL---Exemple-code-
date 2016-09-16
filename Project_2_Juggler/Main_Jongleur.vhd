@@ -13,6 +13,11 @@
 --
 --							  1A) faire tourner les segments dans le sens des 
 --							      aiguilles d'une montre à 0.5s (soit 2Hz) 
+--							   B) avec le Switch S9 de la carte, une pression (> 1s) 
+--								  doit permettre d'arrêter la séquence, de la 
+--								  redémarrer dans l'autre sens, si on appuie à nouveau 
+--								  la séquence s'arrête, si on appuie encore une fois 
+--								  la séquence repart dans la sens initial
 --
 -- Remarques 			    : lien
 -- 							  1) https://fr.wikibooks.org/wiki/TD3_VHDL_Compteurs_et_registres
