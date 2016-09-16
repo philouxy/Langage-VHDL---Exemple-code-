@@ -2,7 +2,7 @@
 -- Nom du projet 		    : JONGLEUR
 -- Nom du fichier 		    : Main_Jongleur.vhd
 -- Date de création 	    : 09.08.2016
--- Date de modification     : 13.09.2016
+-- Date de modification     : 16.09.2016
 --
 -- Auteur 				    : Philou (Ph. Bovey)
 --
@@ -33,8 +33,8 @@ entity JONGLEUR is
 		-- entrée --
 		------------ 
 		-- logique -- 
-		CLK_1_8MHZ : in std_logic; 						-- horloge a 1.8432 MHz 
-		
+		CLK_1_8MHZ 	: in std_logic; 						-- horloge a 1.8432 MHz 
+		SW_9		: in std_logic; 						-- switch S9
 		-- bus --
 		
 		------------
@@ -65,20 +65,26 @@ architecture COMPORTEMENT_GENERAL_JONGLEUR of JONGLEUR is
 	-- signaux internes -- 
 	----------------------
 	-- constante -- 
-	constant VAL_MAX_COMPTEUR_2HZ 	: std_logic_vector(23 downto 0) := X"1C1FFF"; --unsigned(X"1C1FFF"); -- := X"000013";
-	constant VAL_MAX_CMPT_DIV_2	 	: std_logic_vector(23 downto 0) := X"0E0FFF"; -- := X"0E0FFF"; 
-		
-	-- signal -- 
-	signal clk_2Hz 		: std_logic; 
+	constant VAL_MAX_COMPTEUR_2HZ 	: std_logic_vector(23 downto 0) := X"1C1FFF";  	-- 1843200 = X"1C1FFF" =>  Pour simulation  -- X"000013";
+	constant VAL_MAX_CMPT_DIV_2	 	: std_logic_vector(23 downto 0) := X"0E0FFF"; 	-- 921599  = X"0E0FFF" =>  pour simulation  -- X"000009
+	constant VAL_MAX_CMPT_ETAT_S9	: std_logic_vector(3 downto 0)  := X"3";		--  
 	
-	signal etat_segment : std_logic_vector(2 downto 0);   
-	signal compteur_num_f : std_logic_vector(23 downto 0);
-	signal compteur_num_p : std_logic_vector(23 downto 0); 
-	   
+	-- signal -- 
+	signal clk_2Hz 			: std_logic;
+	signal flag_cmpt_etat	: std_logic := '1'; 		-- flag indiquand si le compteur d'état est operationnel ou pas  => 1 = Cmpt_Actif / 0 = Cmpt_no_Actif
+	signal flag_start_S9	: std_logic;   
+	
+	signal etat_segment 	: std_logic_vector(2 downto 0);   
+	signal compteur_num_f 	: std_logic_vector(23 downto 0);
+	signal compteur_num_p 	: std_logic_vector(23 downto 0);
+	signal cmpt_demi_s_p	: std_logic_vector(1 downto 0); 
+	signal cmpt_demi_s_f	: std_logic_vector(1 downto 0);
+	signal cmpt_etat_SW9	: std_logic_vector(1 downto 0) := "00";
+	      
 	begin 	
-	--------------
-	-- compteur -- 
-	--------------	
+	----------------------------------
+	-- compteur tic horloge systeme -- 
+	----------------------------------	
 	CMPT_ETAT_FUTUR_2HZ : process(compteur_num_p)
 		begin 
 			if (compteur_num_p >= VAL_MAX_COMPTEUR_2HZ) then
@@ -94,7 +100,7 @@ architecture COMPORTEMENT_GENERAL_JONGLEUR of JONGLEUR is
 				compteur_num_p <= compteur_num_f;
 			end if; 
 	end process; 
-	
+		
 --	-----------------------------------------
 --	-- Horloge 2Hz rapport cyclique de 50% -- 
 --	-----------------------------------------
@@ -109,8 +115,47 @@ architecture COMPORTEMENT_GENERAL_JONGLEUR of JONGLEUR is
 			end if; 
 	end process; 
 	
+	-- horloge de sortie -- 
 	clk_2Hz_SIM <= clk_2Hz;
-               
+    
+    ----------------------------------
+	-- compteur tic horloge 2Hz -- 
+	----------------------------------           
+--	CMPT_DEMI_SEC_FUTUR : process(cmpt_demi_s_p)
+--		begin 
+--			if falling_edge (SW_9) then 
+--				cmpt_demi_s_f <=  (others => '0');
+--				flag_start_S9 <= 
+--			elsif (cmpt_demi_s_p >= VAL_MAX_CMPT_DEMI_S) then 
+--				cmpt_demi_s_f <=  (others => '0');
+--			else 
+--				cmpt_demi_s_f <= cmpt_demi_s_p + 1;  
+--			end if; 
+--	end process; 
+--	
+--	CMPT_DEMI_SEC_PRESENT : process(clk_2Hz)
+--		begin
+--		 if rising_edge(clk_2Hz) then 
+--			cmpt_demi_s_p <= cmpt_demi_s_f;  
+--		 end if; 
+--	end process;           
+    
+	-----------------------
+	-- Gestion touche S9 -- 
+	-----------------------
+	ETAT_S9 : process(SW_9)
+		begin
+		-- détection venement sur S9 --  
+		if falling_edge(SW_9) then															
+			if (cmpt_etat_SW9 >= VAL_MAX_CMPT_ETAT_S9) then
+				cmpt_etat_SW9 <= "00"; 
+			else 
+				cmpt_etat_SW9 <= cmpt_etat_SW9 + 1;
+				--flag_cmpt_etat <= not (flag_cmpt_etat); 
+			end if; 
+		end if;
+	end process;
+       
     --------------------------
 	-- Gestion des Segments -- 
 	--------------------------
@@ -118,11 +163,25 @@ architecture COMPORTEMENT_GENERAL_JONGLEUR of JONGLEUR is
 		begin 
 			-- détection d'évenement sur flanc montant -- 
 			if (clk_2Hz'event and clk_2Hz = '1') then
-				-- si plus petit que '6' -- 
-				if etat_segment < "110" then 
-					etat_segment <= etat_segment + 1; 
+				-- test si compteur est à 0 -> tourne dans le sens des aiguilles d'une montre -- 
+				if cmpt_etat_SW9 = "00" then 
+					-- si plus petit que '6' -- 
+					if etat_segment < "110" then 
+						etat_segment <= etat_segment + 1; 
+					else 
+						etat_segment <= "000"; 
+					end if; 
+				-- test si compteur est à 2 -> tourne dans le sens contraire des aiguilles d'une montre --	
+				elsif cmpt_etat_SW9 = "10" then 
+					-- si plus petit que '6' -- 
+					if etat_segment > "000" then 
+						etat_segment <= etat_segment - 1; 
+					else 
+						etat_segment <= "110"; 
+					end if;
+				-- reste en mode bloquer --
 				else 
-					etat_segment <= "000"; 
+					etat_segment <= etat_segment;
 				end if; 
 			end if; 
 	end process; 
