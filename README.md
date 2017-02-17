@@ -14,3 +14,7 @@ With an electronics board created by the ETML-ES School and equiped with a FPGA,
 Project 3 - JOYEUX NOEL [DONE] : 
 
 With an electronics board created by the ETML-ES School and equiped with a FPGA, realization / Simulation of a programme in VHDL which allows to read a message in a message implemented in the FPGA (in the code - constant table) and to display the message on the two 7 segments display. The message rolls out at the 500ms (Time). 
+
+Project 3 - Counter 0 to 9 [DONE] : 
+
+With an electronics board created by the ETML-ES School and equiped with a FPGA(EMP1270T144C5), realization program in VHDL which allows to display on 7SEG screen the values of 0 tto 9 (counter). Two switches will allow to select 4 different frequencies (1Hz, 2Hz, 500Hz, 1kHz) and two others will allow to configure the functional mode (START/STOP + increment/decrement counter)
