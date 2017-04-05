@@ -19,6 +19,6 @@ Project 4 - Counter 0 to 9 [DONE] :
 
 With an electronics board created by the ETML-ES School and equiped with a FPGA(EMP1270T144C5), realization program in VHDL which allows to display on 7SEG screen the values of 0 to 9 (counter). Two switches will allow to select 4 different frequencies (1Hz, 2Hz, 500Hz, 1kHz) and two others will allow to configure the functional mode (START/STOP + increment/decrement counter)
 
-Project 5 - Effect mirror on the 7 Seg displays  [IN PROGRESS] : 
+Project 5 - Effect mirror on the 7 Seg displays  [DONE] : 
 
 With an electronics board created by the ETML-ES School and equiped with a FPGA(EMP1270T144C5), realization program in VHDL which allows to display on 7SEG screen the values of A to D, the first degment displays normaly the value, and on the second display allows to see the letter inverted either horizontal or vertical. Two switches will allow to select 4 different mode : NORMAL - HORIZONTAL - VERTCIAL - NO DISPLAY.  
